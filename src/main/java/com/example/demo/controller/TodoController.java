@@ -5,6 +5,8 @@ import com.example.demo.model.Todo;
 import com.example.demo.service.TodoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import java.lang.Exception;
+import io.sentry.Sentry;
 
 import java.util.List;
 
@@ -36,5 +38,15 @@ public class TodoController {
     Todo findById(@PathVariable("id") int id){
         Todo todo=todoService.getById(id);
         return todo;
+    }
+
+    @GetMapping("/error")
+    String generateError() {
+        try {
+            throw new Exception("This is a test.");
+        } catch (Exception e) {
+            Sentry.captureException(e);
+        }
+        return "Error enviado.";
     }
 }
