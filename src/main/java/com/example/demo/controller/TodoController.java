@@ -1,12 +1,14 @@
 package com.example.demo.controller;
 
 
+import com.example.demo.model.JsonResponse;
 import com.example.demo.model.Todo;
 import com.example.demo.service.TodoService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-import java.lang.Exception;
 import io.sentry.Sentry;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -35,18 +37,48 @@ public class TodoController {
     }
 
     @GetMapping("/find/{id}")
-    Todo findById(@PathVariable("id") int id){
-        Todo todo=todoService.getById(id);
-        return todo;
-    }
+    ResponseEntity<JsonResponse<?>> findById(@PathVariable("id") int id){
+        try {
+            Todo todo = todoService.getById(id);
+            JsonResponse<Todo> response= new JsonResponse<>(200,todo);
+            return new ResponseEntity<JsonResponse<?>>(response,HttpStatus.OK);
+        }catch (Exception e){
+            JsonResponse<String> response= new JsonResponse<>(500,"No encontre el elemento con el id "+id);
+            return new ResponseEntity<JsonResponse<?>>(response,HttpStatus.OK);
+        }
 
+    }
+    @GetMapping("/delete/{id}")
+    ResponseEntity<JsonResponse<?>> deleteTodo(@PathVariable("id") int id){
+        try {
+            todoService.deleteTodo(id);
+            JsonResponse<String> response= new JsonResponse<>(200,"Todo "+id+" eliminado");
+            return new ResponseEntity<JsonResponse<?>>(response,HttpStatus.OK);
+        }catch (Exception e){
+            JsonResponse<String> response= new JsonResponse<>(500,"No encontre el elemento con el id "+id);
+            return new ResponseEntity<JsonResponse<?>>(response,HttpStatus.OK);
+        }
+
+    }
+    @PostMapping("/find/title")
+    ResponseEntity<JsonResponse<?>> findByTitle(@RequestBody Todo todoRequest){
+        try {
+            Todo todo = todoService.getByTitle(todoRequest.getTitle());
+            JsonResponse<Todo> response= new JsonResponse<>(200,todo);
+            return new ResponseEntity<JsonResponse<?>>(response,HttpStatus.OK);
+        }catch (Exception e){
+            JsonResponse<String> response= new JsonResponse<>(500,"No encontre el elemento con el título "+todoRequest.getTitle());
+            return new ResponseEntity<JsonResponse<?>>(response,HttpStatus.OK);
+        }
+
+    }
     @GetMapping("/error")
-    String generateError() {
+    String generateError(){
         try {
             throw new Exception("This is a test.");
         } catch (Exception e) {
             Sentry.captureException(e);
         }
-        return "Error enviado.";
+        return "Error enviado";
     }
 }
